@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Comparator.*;
 import static java.util.Locale.filter;
+import static java.util.stream.Collectors.toMap;
 
 
 @SpringBootTest
@@ -55,12 +56,16 @@ class TiendaApplicationTests {
 	@Test
 	void test1() {
 		var listProds = prodRepo.findAll();
-		//TODO
+		var result = listProds.stream()
+				.collect(toMap(Producto::getNombre, Producto::getPrecio));
+
+		result.forEach((k, v) -> System.out.println(k + " - " + v));
+		Assertions.assertEquals(11, result.size());
 	}
 	
 	
 	/**
-	 * 2. Devuelve una lista de Producto completa con el precio de euros convertido a dólares .
+	 * 2. Devuelve una lista de Producto completa con el precio de euros convertido a dólares.
 	 */
 	@Test
 	void test2() {
