@@ -71,15 +71,16 @@ class TiendaApplicationTests {
 	void test2() {
 		var listProdsPrecioEuro = prodRepo.findAll();
 		var listaProdsPrecidoDollar = listProdsPrecioEuro.stream()
-									.map(p -> {
-										Producto pDollar = new Producto();
-										pDollar.setCodigo(p.getCodigo());
-										pDollar.setNombre(p.getNombre());
-										pDollar.setPrecio(p.getPrecio()*1.00);
-										pDollar.setFabricante(p.getFabricante());
-                                        return pDollar;
-                                    })
-									.toList();
+			.map(p -> {
+				Producto pDollar = new Producto();
+				pDollar.setCodigo(p.getCodigo());
+				pDollar.setNombre(p.getNombre());
+				pDollar.setPrecio(p.getPrecio()*1.00);
+				pDollar.setFabricante(p.getFabricante());
+				return pDollar;
+			})
+			.toList();
+
 		System.out.println("Lista productos con Euros: " );
 		listProdsPrecioEuro.forEach(p -> System.out.println(p));
 
