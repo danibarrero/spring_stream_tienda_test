@@ -659,7 +659,11 @@ Fabricante: Xiaomi
 	void test36() {
 		var listProds = prodRepo.findAll();
 		var result = listProds.stream()
-				.filter(p -> p.getFabricante().getNombre().contains("Asus"));
+				.filter(p -> p.getFabricante().getNombre().equalsIgnoreCase("Asus"))
+						.mapToDouble(p -> p.getPrecio()).average().orElse(0.0);
+
+		System.out.println(result);
+		Assertions.assertEquals(223.995, result);
 	}
 	
 	
@@ -670,7 +674,25 @@ Fabricante: Xiaomi
 	@Test
 	void test37() {
 		var listProds = prodRepo.findAll();
-		//TODO
+		var result = listProds.stream()
+				.filter(p -> p.getFabricante().getNombre().equalsIgnoreCase("Crucial"))
+				.map(p -> new Double[] {
+						p.getPrecio(),
+						p.getPrecio(),
+						p.getPrecio(),
+						0.0})
+				.reduce((doubles, doubles2) -> new Double[]{
+						Math.min(doubles[0], doubles2[0]),
+						Math.max(doubles[1], doubles2[1]),
+						doubles[2]+doubles2[2],
+						doubles[3]+doubles2[3],})
+				.orElse(new Double[]{});
+
+		Double media = result[3]>0 ? result[2]/result[3]: 0.0;
+		System.out.println("Valor mínimo: " + result[0]);
+		System.out.println("Valor máximo: " + result[1]);
+		System.out.println("Valor medio: " + media);
+		System.out.println("Numero total: " + result[3]);
 	}
 	
 	/**
@@ -696,7 +718,7 @@ Hewlett-Packard              2
 	@Test
 	void test38() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		// TODO
 	}
 	
 	/**
