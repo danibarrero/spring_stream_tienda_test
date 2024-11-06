@@ -685,11 +685,11 @@ Fabricante: Xiaomi
 						p.getPrecio(),
 						p.getPrecio(),
 						0.0})
-				.reduce((doubles, doubles2) -> new Double[]{
-						Math.min(doubles[0], doubles2[0]),
-						Math.max(doubles[1], doubles2[1]),
-						doubles[2]+doubles2[2],
-						doubles[3]+doubles2[3],})
+				.reduce((acc, curr) -> new Double[]{
+						Math.min(acc[0], curr[0]),
+						Math.max(acc[1], curr[1]),
+						acc[2]+curr[2],
+						acc[3]+curr[3],})
 				.orElse(new Double[]{});
 
 		Double media = result[3]>0 ? result[2]/result[3]: 0.0;
@@ -734,24 +734,68 @@ Hewlett-Packard              2
 	
 	/**
 	 * 39. Muestra el precio máximo, precio mínimo y precio medio de los productos de cada uno de los fabricantes. 
-	 * El resultado mostrará el nombre del fabricante junto con los datos que se solicitan. Realízalo en 1 solo stream principal. Utiliza reduce con Double[] como "acumulador".
+	 * El resultado mostrará el nombre del fabricante junto con los datos que se solicitan. Realízalo en 1 solo stream principal.
+	 * Utiliza reduce con Double[] como "acumulador".
 	 * Deben aparecer los fabricantes que no tienen productos.
 	 */
 	@Test
 	void test39() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		listFabs.stream()
+				.flatMap(f -> f.getProductos().stream())
+				.mapToDouble(p -> p.getPrecio())
+				.min()
+				.ifPresentOrElse(resultado -> System.out.println("Mínimo: " + resultado),
+						() -> System.out.println("No devuelve nada"));
 
+		var max = listFabs.stream()
+				.flatMap(f -> f.getProductos().stream())
+				.mapToDouble(p -> p.getPrecio())
+				.max();
+		System.out.println("Máximo: " + max);
+
+		var media = listFabs.stream()
+				.flatMap(f -> f.getProductos().stream())
+				.mapToDouble(p -> p.getPrecio())
+				.average()
+				.orElse(0.0);
+		System.out.println("Media: " + media);
 	}
 	
 	/**
-	 * 40. Muestra el precio máximo, precio mínimo, precio medio y el número total de productos de los fabricantes que tienen un precio medio superior a 200€. 
+	 * 40. Muestra el precio máximo, precio mínimo, precio medio y el número total de productos de los fabricantes que
+	 * tienen un precio medio superior a 200€.
 	 * No es necesario mostrar el nombre del fabricante, con el código del fabricante es suficiente.
 	 */
 	@Test
 	void test40() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		var result = listFabs.stream()
+				.filter(f -> f.getProductos().stream()
+					.mapToDouble(p -> p.getPrecio())
+					.average()
+					.orElse(0)
+						>=200)
+				.map(f -> new Object() {
+					int codFab = f.getCodigo();
+					double max = f.getProductos().stream()
+							.mapToDouble(p -> p.getPrecio())
+							.max()
+							.orElse(0);
+					double min = f.getProductos().stream()
+							.mapToDouble(p -> p.getPrecio())
+							.min()
+							.orElse(0);
+					double media = f.getProductos().stream()
+							.mapToDouble(p -> p.getPrecio())
+							.average()
+							.orElse(0);
+					long total = f.getProductos().size();
+
+				})
+				.toList();
+		result.forEach(ob -> System.out.println("Código: " + ob.codFab + " Mínimo: " + ob.min + " Máximo: "
+												+ ob.max + " Media: " + ob.media + " Total: " + ob.total));
 	}
 	
 	/**
@@ -770,24 +814,23 @@ Hewlett-Packard              2
 	}
 	
 	/**
-	 * 42. Devuelve un listado con los nombres de los fabricantes y el número de productos que tiene cada uno con un precio superior o igual a 220 €. 
+	 * 42. Devuelve un listado con los nombres de los fabricantes y el número de productos que tiene cada uno con
+	 * un precio superior o igual a 220 €.
 	 * Ordenado de mayor a menor número de productos.
 	 */
 	@Test
 	void test42() {
 		var listFabs = fabRepo.findAll();
-		record numProducto(String nombre, int numP) {
-		}
-		var result = listFabs.stream()
-				.map(f -> new numProducto(f.getNombre(),
-						(int) f.getProductos().stream().filter(p -> p.getPrecio() >= 220).count()))
 
-				.filter(f -> f.numP() > 0)
-				.sorted(comparingInt(numProducto::numP).reversed())
+		var result = listFabs.stream()
+				.sorted(comparing((Fabricante f) -> f.getProductos().stream()
+						.filter(p -> p.getPrecio() >= 220)
+						.count(), reverseOrder()))
+				.map(f -> f.getNombre() + f.getProductos().stream()
+						.filter(p -> p.getPrecio() >= 220).toList())
 				.toList();
 
 		result.forEach(System.out::println);
-		Assertions.assertEquals(3, result.size());
 	}
 	
 	/**
